@@ -1,0 +1,40 @@
+name: Build APK beatDrop
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-22.04
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Build APK
+        run: |
+          export HOME=/root
+          mkdir -p build
+          godot --headless --verbose --editor --quit || true
+          godot --headless --verbose --export-debug "Android Debug" build/beatDrop.apk
+          ls -la build
+
+      - name: Simpan APK (artifact zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: beatdrop-apk
+          path: build/beatDrop.apk
+
+      - name: Terbitkan APK langsung (tanpa zip)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: beatdrop-latest
+          name: beatDrop APK terbaru
+          files: build/beatDrop.apk
+          
